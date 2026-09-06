@@ -48,11 +48,15 @@ const BASS = [...BASS_BAR, ...BASS_BAR].flat();
 const CHORDS_BAR = [['C4', 'E4', 'G4'], ['A3', 'C4', 'E4'], ['F3', 'A3', 'C4'], ['G3', 'B3', 'D4']];
 const CHORDS = [...CHORDS_BAR, ...CHORDS_BAR];
 
+let reverb;
+let meter = null;
+
 function build() {
   const dest = Tone.getDestination();
   dest.volume.value = -4;
 
-  const reverb = new Tone.Reverb({ decay: 2.4, wet: 0.32 }).toDestination();
+  // "Espacio" barato: un eco suave en vez de reverb por convolución (pesada en móvil).
+  reverb = new Tone.FeedbackDelay({ delayTime: '8n.', feedback: 0.22, wet: 0.22 }).toDestination();
   const filter = new Tone.Filter(2600, 'lowpass').connect(reverb);
 
   melody = new Tone.PolySynth(Tone.Synth, {
@@ -83,13 +87,42 @@ function build() {
   transport.bpm.value = 96;
   new Tone.Sequence((time, n) => { if (n) melody.triggerAttackRelease(n, '8n', time); }, MEL, '8n').start(0);
   new Tone.Sequence((time, n) => { if (n) bass.triggerAttackRelease(n, '4n', time); }, BASS, '4n').start(0);
-  new Tone.Sequence((time, c) => { if (c) pad.triggerAttackRelease(c, '1m', time); }, CHORDS, '1m').start(0);
+  // (índices, no arrays: Tone.Sequence interpreta los arrays anidados como subdivisiones)
+  new Tone.Sequence((time, i) => pad.triggerAttackRelease(CHORDS[i], '1m', time), CHORDS.map((_, i) => i), '1m').start(0);
   transport.start('+0.05');
 
   document.addEventListener('visibilitychange', () => {
     if (!ready) return;
     try { document.hidden ? transport.pause() : transport.start(); } catch { /* nada */ }
   });
+
+  // Vigilante: si el navegador suspende el contexto (pasa en Android), lo reanuda.
+  const revive = () => {
+    if (!ready || document.hidden || muted) return;
+    try {
+      const ctx = Tone.getContext();
+      if (ctx.state !== 'running') ctx.resume().catch(() => {});
+      if (transport.state !== 'started') transport.start();
+    } catch { /* nada */ }
+  };
+  setInterval(revive, 1500);
+  window.addEventListener('pointerdown', revive, { passive: true });
+  window.addEventListener('focus', revive);
+
+  if (new URLSearchParams(location.search).has('fps')) {
+    meter = new Tone.Meter({ smoothing: 0.6 });
+    dest.connect(meter);
+  }
+}
+
+// Estado para el overlay de depuración (?fps=1)
+export function debugInfo() {
+  if (!ready) return 'audio: sin iniciar';
+  try {
+    const ctx = Tone.getContext();
+    const lvl = meter ? meter.getValue() : NaN;
+    return `ctx ${ctx.state} · transport ${transport.state} · ${Number.isFinite(lvl) ? lvl.toFixed(0) + ' dB' : '—'}`;
+  } catch (e) { return 'audio err ' + e.message; }
 }
 
 const SCALE = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];

@@ -1,7 +1,7 @@
 :root {
   --bg: #05030f;
   --cyan: #7dd3fc;
-  --pink: #f9a8d4;
+  --purple: #c084fc;
   --gold: #fde68a;
   --violet: #c4b5fd;
   --ink: #eaf2ff;
@@ -42,7 +42,7 @@ html, body {
 #ui button { pointer-events: auto; }
 
 .neon { color: var(--cyan); text-shadow: 0 0 6px rgba(125,211,252,.9), 0 0 18px rgba(125,211,252,.55), 0 0 40px rgba(56,189,248,.35); }
-.neon-pink { color: var(--pink); text-shadow: 0 0 6px rgba(249,168,212,.9), 0 0 18px rgba(249,168,212,.5), 0 0 40px rgba(236,72,153,.35); }
+.neon-purple { color: var(--purple); text-shadow: 0 0 6px rgba(192,132,252,.9), 0 0 18px rgba(192,132,252,.5), 0 0 40px rgba(147,51,234,.35); }
 
 .btn {
   font-family: var(--pixel);
@@ -63,21 +63,26 @@ html, body {
 .btn:active { transform: translateY(4px); box-shadow: 0 0 0 #0369a1, 0 0 22px rgba(125,211,252,.55); }
 .btn.ghost { background: transparent; color: var(--cyan); box-shadow: inset 0 0 0 3px var(--cyan), 0 0 16px rgba(125,211,252,.35); }
 .btn.ghost:active { transform: translateY(2px); }
-.btn.big { font-size: 13px; padding: 20px 24px; background: var(--pink); box-shadow: 0 4px 0 #9d174d, 0 0 26px rgba(249,168,212,.65); }
-.btn.big:active { box-shadow: 0 0 0 #9d174d, 0 0 26px rgba(249,168,212,.65); }
+.btn.big { font-size: 13px; padding: 20px 24px; background: var(--purple); box-shadow: 0 4px 0 #6d28d9, 0 0 26px rgba(192,132,252,.65); }
+.btn.big:active { box-shadow: 0 0 0 #6d28d9, 0 0 26px rgba(192,132,252,.65); }
 .btn.small { font-size: 9px; padding: 13px 14px; }
 .stack { display: flex; flex-direction: column; gap: 14px; align-items: center; }
 
 .icon-btn {
   position: fixed; top: calc(var(--sat) + 10px); right: calc(var(--sar) + 12px);
-  width: 40px; height: 40px;
-  font-family: var(--pixel); font-size: 16px; line-height: 40px; text-align: center;
+  width: 46px; height: 46px;
+  display: grid; place-items: center;
   color: var(--cyan); background: rgba(5,3,15,.55);
   border: 2px solid var(--cyan); border-radius: 0; cursor: pointer;
   box-shadow: 0 0 12px rgba(125,211,252,.35);
   padding: 0;
 }
-.icon-btn.off { color: #64748b; border-color: #64748b; box-shadow: none; text-decoration: line-through; }
+.icon-btn svg { width: 28px; height: 28px; display: block; filter: drop-shadow(0 0 4px rgba(125,211,252,.7)); }
+.icon-btn .ico-off { display: none; }
+.icon-btn.off { color: #94a3b8; border-color: #64748b; box-shadow: none; }
+.icon-btn.off svg { filter: none; }
+.icon-btn.off .ico-on { display: none; }
+.icon-btn.off .ico-off { display: block; }
 
 /* ───────── HUD ───────── */
 #hud {
@@ -167,21 +172,21 @@ html, body {
 }
 .paper-top { text-align: center; font-family: var(--pixel); font-size: 10px; color: var(--gold); margin-bottom: 14px; letter-spacing: 6px; }
 #letter-content p { margin: 0 0 16px; }
-#letter-content hr { border: 0; height: 2px; margin: 18px auto; width: 40%; background: linear-gradient(90deg, transparent, var(--pink), transparent); }
+#letter-content hr { border: 0; height: 2px; margin: 18px auto; width: 40%; background: linear-gradient(90deg, transparent, var(--purple), transparent); }
 #letter-content b { color: var(--gold); font-weight: normal; }
-#letter-content i { color: var(--pink); font-style: italic; }
+#letter-content i { color: var(--purple); font-style: italic; }
 #letter-content .ch { visibility: hidden; }
 #letter-content .ch.on { visibility: visible; }
 #letter-content .caret { display: inline-block; width: .55em; color: var(--cyan); animation: blink .7s steps(1) infinite; }
-#letter-sign { margin: 6px 0 0; text-align: right; color: var(--pink); font-size: 26px; opacity: 0; }
+#letter-sign { margin: 6px 0 0; text-align: right; color: var(--purple); font-size: 26px; opacity: 0; }
 .heart { display: flex; justify-content: center; margin: 10px 0 4px; opacity: 0; }
-.heart svg { width: 39px; height: 33px; filter: drop-shadow(0 0 8px rgba(244,114,182,.8)); animation: beat 1.1s ease-in-out infinite; }
+.heart svg { width: 39px; height: 33px; filter: drop-shadow(0 0 8px rgba(168,85,247,.8)); animation: beat 1.1s ease-in-out infinite; }
 .letter-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; opacity: 0; }
 .tap-hint { position: fixed; bottom: calc(var(--sab) + 14px); left: 0; right: 0; text-align: center; margin: 0; font-family: var(--mono); font-size: 19px; color: #94a3b8; }
 
 .btn.float {
   position: fixed; right: calc(var(--sar) + 12px); bottom: calc(var(--sab) + 16px);
-  font-size: 22px; padding: 12px 14px; background: var(--pink); box-shadow: 0 4px 0 #9d174d, 0 0 20px rgba(249,168,212,.6);
+  font-size: 22px; padding: 12px 14px; background: var(--purple); box-shadow: 0 4px 0 #6d28d9, 0 0 20px rgba(192,132,252,.6);
 }
 
 #fps { position: fixed; left: 8px; bottom: calc(var(--sab) + 8px); font-family: var(--mono); font-size: 18px; color: #4ade80; }

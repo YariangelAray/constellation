@@ -47,12 +47,12 @@ export const CONFIG = {
   // Colores del neón (puedes cambiarlos, son colores CSS normales).
   paleta: {
     fondo: '#05030f',
-    estrellas: ['#fde68a', '#f9a8d4', '#7dd3fc', '#c4b5fd', '#86efac', '#fdba74', '#ffffff'],
-    nebulosas: ['#6d28d9', '#0284c7', '#be185d'],
+    estrellas: ['#fde68a', '#d8b4fe', '#7dd3fc', '#c4b5fd', '#86efac', '#fdba74', '#ffffff'],
+    nebulosas: ['#6d28d9', '#0284c7', '#9333ea'],
   },
 
   // Ajustes finos (normalmente no hace falta tocarlos)
-  pixelDetail: 260,   // más alto = píxeles más pequeños (más detalle); más bajo = más chunky
+  pixelDetail: 300,   // más alto = píxeles más pequeños (más detalle); más bajo = más chunky
   vibracion: true,    // vibración cortita al recoger cada estrella (solo Android)
   bloom: true,        // resplandor extra en el final
   modoLibre: true,    // permitir seguir volando después de la carta

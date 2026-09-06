@@ -21,7 +21,7 @@
         <span class="hud-star">✦</span>
         <span id="count">0</span><span class="sep">/</span><span id="total">20</span>
       </div>
-      <button id="mute" class="icon-btn" hidden aria-label="Sonido">♪</button>
+      <button id="mute" class="icon-btn" hidden aria-label="Sonido"></button>
       <div id="phrase" aria-live="polite"></div>
       <div id="compass-hint" hidden>✦ sigue la flechita</div>
 
@@ -30,12 +30,13 @@
         <div class="intro-box">
           <p class="eyebrow" id="intro-date"></p>
           <h1 class="neon title">FELIZ<br />CUMPLE</h1>
-          <h2 id="intro-name" class="neon-pink"></h2>
+          <h2 id="intro-name" class="neon-purple"></h2>
           <p class="hint" id="intro-hint">Arrastra el dedo para volar<br />y recoge las <b>20</b> estrellas ✦</p>
           <button id="start" class="btn">▶ &nbsp;TOCA PARA EMPEZAR</button>
           <div id="intro-done" class="stack" hidden>
             <button id="read-again" class="btn">💌 &nbsp;LEER LA CARTA</button>
             <button id="fly-again" class="btn ghost">✦ &nbsp;VOLVER A VOLAR</button>
+            <button id="restart" class="btn ghost small">↺ &nbsp;EMPEZAR DE CERO</button>
           </div>
           <p class="tiny">toca la pantalla para activar el sonido</p>
         </div>
@@ -44,7 +45,7 @@
       <!-- Final -->
       <div id="finale">
         <h1 id="finale-title" class="neon title"></h1>
-        <p id="finale-sub" class="neon-pink"></p>
+        <p id="finale-sub" class="neon-purple"></p>
         <div id="polaroids"></div>
         <button id="open-letter" class="btn big" hidden>💌 &nbsp;LEER LA CARTA</button>
       </div>
@@ -57,7 +58,7 @@
           <p id="letter-sign"></p>
           <div class="heart" aria-hidden="true">
             <svg viewBox="0 0 13 11" shape-rendering="crispEdges">
-              <g fill="#f472b6">
+              <g fill="#a855f7">
                 <rect x="1" y="0" width="3" height="1"/><rect x="9" y="0" width="3" height="1"/>
                 <rect x="0" y="1" width="5" height="1"/><rect x="8" y="1" width="5" height="1"/>
                 <rect x="0" y="2" width="13" height="1"/><rect x="0" y="3" width="13" height="1"/>
@@ -66,12 +67,13 @@
                 <rect x="4" y="8" width="5" height="1"/><rect x="5" y="9" width="3" height="1"/>
                 <rect x="6" y="10" width="1" height="1"/>
               </g>
-              <g fill="#fbcfe8"><rect x="2" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="2"/></g>
+              <g fill="#e9d5ff"><rect x="2" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="2"/></g>
             </svg>
           </div>
           <div class="letter-actions">
             <button id="letter-again" class="btn ghost small">↻ &nbsp;OTRA VEZ</button>
             <button id="letter-fly" class="btn small">✦ &nbsp;VOLVER A VOLAR</button>
+            <button id="letter-restart" class="btn ghost small">↺ &nbsp;REINICIAR</button>
           </div>
         </div>
         <p class="tap-hint" id="tap-hint">toca para ver todo</p>

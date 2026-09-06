@@ -40,6 +40,12 @@ function startFree() {
   if (CONFIG.modoLibre) hud.showFreeLetter(() => game.openLetter());
 }
 
+// Empezar de cero: borra el progreso y recarga limpio (sin parámetros de prueba)
+function restart() {
+  storage.clear();
+  location.replace(location.pathname);
+}
+
 game.complete = () => {
   game.state = 'finale';
   input.enabled = false;
@@ -68,7 +74,11 @@ async function boot() {
   }
 
   hud.init();
-  letter.init({ onFly: () => (CONFIG.modoLibre ? startFree() : hud.showIntro({ done: true })) });
+  letter.init({
+    onFly: () => (CONFIG.modoLibre ? startFree() : hud.showIntro({ done: true })),
+    onRestart: restart,
+  });
+  hud.el.restart.addEventListener('click', restart);
 
   await initApp(document.getElementById('game-root'));
   buildTextures();
@@ -83,7 +93,8 @@ async function boot() {
   });
 
   if (params.has('fps')) {
-    setInterval(() => hud.fps(`${Math.round(app.ticker.FPS)} fps · ${game.space.root.width | 0}`), 500);
+    window.__audio = audio;
+    setInterval(() => hud.fps(`${Math.round(app.ticker.FPS)} fps · ${audio.debugInfo()}`), 500);
   }
 
   // Botones de la portada (el primer toque desbloquea el audio)

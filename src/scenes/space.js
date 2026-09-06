@@ -7,7 +7,7 @@ import { TEX } from '../art/sprites.js';
 import { Particles } from '../core/fx.js';
 import { Astronaut } from '../entities/astronaut.js';
 import { Starfield } from '../entities/starfield.js';
-import { mulberry32, clamp, dist, hex, vibrate, storage } from '../core/util.js';
+import { mulberry32, clamp, dist, hex, vibrate, storage, params } from '../core/util.js';
 import * as audio from '../core/audio.js';
 import { hud } from '../ui/hud.js';
 import { formation } from './finale.js';
@@ -244,7 +244,7 @@ export class SpaceScene {
     hud.setCount(n, true);
     hud.phrase(CONFIG.frases[n - 1]);
     audio.blip(n - 1);
-    if (CONFIG.vibracion) vibrate(n >= CONFIG.totalEstrellas ? [30, 40, 60] : 15);
+    if (CONFIG.vibracion && !params.has('novib')) vibrate(n >= CONFIG.totalEstrellas ? [30, 40, 60] : 15);
 
     if (n >= CONFIG.totalEstrellas) {
       this.mode = 'finale-wait';

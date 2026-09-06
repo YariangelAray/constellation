@@ -4,6 +4,41 @@ import * as audio from '../core/audio.js';
 
 const $ = (s) => document.querySelector(s);
 
+// Iconos pixel del botón de sonido, dibujados como rects de SVG (12×12)
+const SPEAKER = [
+  '......#.....',
+  '.....##.....',
+  '....###..#..',
+  '.#####....#.',
+  '.#####.#..#.',
+  '.#####..#.#.',
+  '.#####..#.#.',
+  '.#####.#..#.',
+  '.#####....#.',
+  '....###..#..',
+  '.....##.....',
+  '......#.....',
+];
+const SPEAKER_OFF = [
+  '......#.....',
+  '.....##.....',
+  '....###.....',
+  '.#####.#...#',
+  '.#####..#.#.',
+  '.#####...#..',
+  '.#####...#..',
+  '.#####..#.#.',
+  '.#####.#...#',
+  '....###.....',
+  '.....##.....',
+  '......#.....',
+];
+function pixelSvg(rows, cls) {
+  const rects = [];
+  rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') rects.push(`<rect x="${x}" y="${y}" width="1" height="1"/>`); }));
+  return `<svg class="${cls}" viewBox="0 0 12 12" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true">${rects.join('')}</svg>`;
+}
+
 // Todo lo que es texto/botones vive en el DOM encima del canvas.
 export const hud = {
   el: {},
@@ -13,7 +48,9 @@ export const hud = {
     const el = this.el;
     ['hud', 'count', 'total', 'mute', 'phrase', 'compass-hint', 'intro', 'intro-date', 'intro-name', 'intro-hint',
       'start', 'intro-done', 'read-again', 'fly-again', 'finale', 'finale-title', 'finale-sub', 'polaroids',
-      'open-letter', 'free-letter', 'fps'].forEach((id) => { el[id] = $('#' + id); });
+      'open-letter', 'free-letter', 'fps', 'restart'].forEach((id) => { el[id] = $('#' + id); });
+
+    el.mute.innerHTML = pixelSvg(SPEAKER, 'ico-on') + pixelSvg(SPEAKER_OFF, 'ico-off');
 
     el.total.textContent = CONFIG.totalEstrellas;
     el['intro-date'].textContent = CONFIG.fecha || '';
@@ -25,7 +62,6 @@ export const hud = {
 
   syncMute() {
     this.el.mute.classList.toggle('off', audio.isMuted());
-    this.el.mute.textContent = audio.isMuted() ? '♪' : '♪';
   },
 
   // ── portada ──

@@ -27,7 +27,7 @@ export function pixelTexture(rows, palette) {
 // ── Astronauta (14 × 20) ──
 const ASTRO_PAL = {
   W: '#f8f8ff', S: '#c7cbe6', K: '#14142b', C: '#38bdf8', L: '#e0f2fe', M: '#0c4a6e',
-  G: '#7c8aa5', D: '#3b4460', R: '#f472b6', O: '#fb923c',
+  G: '#7c8aa5', D: '#3b4460', R: '#a855f7', O: '#fb923c',
 };
 const ASTRO_ROWS = [
   '....WWWWWW....',

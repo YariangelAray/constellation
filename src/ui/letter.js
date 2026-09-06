@@ -40,8 +40,9 @@ export const letter = {
   timer: null,
   onFly: null,
 
-  init({ onFly }) {
+  init({ onFly, onRestart }) {
     this.onFly = onFly;
+    this.onRestart = onRestart;
     const el = this.el;
     el.overlay = $('#letter');
     el.paper = $('.paper');
@@ -53,6 +54,7 @@ export const letter = {
 
     $('#letter-again').addEventListener('click', () => this.start());
     $('#letter-fly').addEventListener('click', () => { this.hide(); this.onFly?.(); });
+    $('#letter-restart').addEventListener('click', () => this.onRestart?.());
     el.overlay.addEventListener('pointerdown', (e) => {
       if (e.target.closest('button')) return;
       if (this.typing) this.finish();
