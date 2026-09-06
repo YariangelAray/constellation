@@ -7,6 +7,8 @@ let muted = false;
 try { muted = localStorage.getItem('c20-mute') === '1'; } catch { /* nada */ }
 
 let melody, bass, pad, blipSynth, transport;
+let silentFor = 0;
+let revivals = 0;
 
 export const isReady = () => ready;
 export const isMuted = () => muted;
@@ -86,12 +88,21 @@ function build() {
     volume: -15,
   }).connect(reverb);
 
+  // Margen de anticipación amplio: en el móvil un frame pesado puede hacer que el
+  // planificador llegue tarde y se pierdan notas. Con 0.25 s aguanta los tirones.
+  try { Tone.getContext().lookAhead = 0.25; } catch { /* nada */ }
+  for (const s of [melody, pad, blipSynth]) { try { s.maxPolyphony = 32; } catch { /* nada */ } }
+
   transport = Tone.getTransport();
   transport.bpm.value = 96;
-  new Tone.Sequence((time, n) => { if (n) melody.triggerAttackRelease(n, '8n', time); }, MEL, '8n').start(0);
-  new Tone.Sequence((time, n) => { if (n) bass.triggerAttackRelease(n, '4n', time); }, BASS, '4n').start(0);
+
+  // OJO: si un callback de secuencia lanza (p. ej. "max polyphony exceeded"), Tone deja de
+  // planificar y la música se calla para siempre. Por eso van todos envueltos en try/catch.
+  const safe = (fn) => (time, v) => { try { fn(time, v); } catch { /* nota perdida, seguimos */ } };
+  new Tone.Sequence(safe((time, n) => { if (n) melody.triggerAttackRelease(n, '8n', time); }), MEL, '8n').start(0);
+  new Tone.Sequence(safe((time, n) => { if (n) bass.triggerAttackRelease(n, '4n', time); }), BASS, '4n').start(0);
   // (índices, no arrays: Tone.Sequence interpreta los arrays anidados como subdivisiones)
-  new Tone.Sequence((time, i) => pad.triggerAttackRelease(CHORDS[i], '1m', time), CHORDS.map((_, i) => i), '1m').start(0);
+  new Tone.Sequence(safe((time, i) => pad.triggerAttackRelease(CHORDS[i], '1m', time)), CHORDS.map((_, i) => i), '1m').start(0);
   transport.start('+0.05');
 
   document.addEventListener('visibilitychange', () => {
@@ -99,23 +110,37 @@ function build() {
     try { document.hidden ? transport.pause() : transport.start(); } catch { /* nada */ }
   });
 
-  // Vigilante: si el navegador suspende el contexto (pasa en Android), lo reanuda.
+  // Medidor siempre activo: es como el vigilante detecta un silencio real.
+  meter = new Tone.Meter({ smoothing: 0.6 });
+  dest.connect(meter);
+
+  // Vigilante: reanuda el contexto si Android lo suspende y, sobre todo, detecta cuando
+  // la música se ha quedado muda aunque todo "parezca" bien, y rearranca el transporte.
+  const TICK = 1000;
+  const SILENCE_MS = 4000;
   const revive = () => {
-    if (!ready || document.hidden || muted) return;
+    if (!ready || document.hidden || muted) { silentFor = 0; return; }
     try {
       const ctx = Tone.getContext();
       if (ctx.state !== 'running') ctx.resume().catch(() => {});
       if (transport.state !== 'started') transport.start();
+
+      const lvl = meter.getValue();
+      const silent = !Number.isFinite(lvl) || lvl < -70;
+      silentFor = silent ? silentFor + TICK : 0;
+      if (silentFor >= SILENCE_MS) {
+        silentFor = 0;
+        revivals++;
+        for (const s of [melody, pad, blipSynth]) { try { s.releaseAll(); } catch { /* nada */ } }
+        transport.stop();
+        transport.position = 0;
+        transport.start('+0.05');
+      }
     } catch { /* nada */ }
   };
-  setInterval(revive, 1500);
+  setInterval(revive, TICK);
   window.addEventListener('pointerdown', revive, { passive: true });
   window.addEventListener('focus', revive);
-
-  if (new URLSearchParams(location.search).has('fps')) {
-    meter = new Tone.Meter({ smoothing: 0.6 });
-    dest.connect(meter);
-  }
 }
 
 // Estado para el overlay de depuración (?fps=1)
@@ -124,7 +149,9 @@ export function debugInfo() {
   try {
     const ctx = Tone.getContext();
     const lvl = meter ? meter.getValue() : NaN;
-    return `ctx ${ctx.state} · transport ${transport.state} · ${Number.isFinite(lvl) ? lvl.toFixed(0) + ' dB' : '—'}`;
+    const m = muted ? ' · MUTE' : '';
+    const r = revivals ? ` · rev${revivals}` : '';
+    return `ctx ${ctx.state} · tr ${transport.state} · ${Number.isFinite(lvl) ? lvl.toFixed(0) + 'dB' : 'mudo'}${m}${r}`;
   } catch (e) { return 'audio err ' + e.message; }
 }
 

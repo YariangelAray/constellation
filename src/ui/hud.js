@@ -58,7 +58,17 @@ export const hud = {
     el['intro-name'].textContent = CONFIG.nombre;
 
     this.syncMute();
-    el.mute.addEventListener('click', () => { audio.setMuted(!audio.isMuted()); this.syncMute(); });
+    // Solo cuenta un toque deliberado: el dedo tiene que BAJAR sobre el botón. Si venías
+    // volando y el arrastre acaba encima, no se silencia el juego sin querer.
+    let armed = false;
+    el.mute.addEventListener('pointerdown', () => { armed = true; });
+    window.addEventListener('pointerup', () => { setTimeout(() => { armed = false; }, 0); });
+    el.mute.addEventListener('click', () => {
+      if (!armed) return;
+      armed = false;
+      audio.setMuted(!audio.isMuted());
+      this.syncMute();
+    });
   },
 
   syncMute() {
