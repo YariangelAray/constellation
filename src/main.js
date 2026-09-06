@@ -97,7 +97,9 @@ async function boot() {
     setInterval(() => hud.fps(`${Math.round(app.ticker.FPS)} fps · ${audio.debugInfo()}`), 500);
   }
 
-  // Botones de la portada (el primer toque desbloquea el audio)
+  // Cualquier toque en la portada desbloquea el audio (la música arranca ahí mismo)
+  hud.el.intro.addEventListener('pointerdown', () => audio.unlock());
+  // Botones de la portada
   hud.el.start.addEventListener('click', () => { audio.unlock(); startSpace(); });
   hud.el['fly-again'].addEventListener('click', () => { audio.unlock(); startFree(); });
   hud.el['read-again'].addEventListener('click', () => { audio.unlock(); startFree(); game.openLetter(); });
