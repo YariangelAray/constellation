@@ -55,8 +55,8 @@ function build() {
   const dest = Tone.getDestination();
   dest.volume.value = -4;
 
-  // "Espacio" barato: un eco suave en vez de reverb por convolución (pesada en móvil).
-  reverb = new Tone.FeedbackDelay({ delayTime: '8n.', feedback: 0.22, wet: 0.22 }).toDestination();
+  // Sin reverb ni eco: en móvil la reverb por convolución cortaba el audio y el eco molestaba.
+  reverb = new Tone.Gain(1).toDestination();
   const filter = new Tone.Filter(2600, 'lowpass').connect(reverb);
 
   melody = new Tone.PolySynth(Tone.Synth, {
