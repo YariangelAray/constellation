@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#05030f" />
+    <meta name="description" content="Recoge 20 estrellas y descubre una sorpresa ✦" />
+    <meta property="og:title" content="Para ti ✦" />
+    <meta property="og:description" content="Un pequeño viaje por la galaxia. Toca para empezar." />
+    <title>Para ti ✦</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E✦%3C/text%3E%3C/svg%3E" />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body>
+    <div id="game-root"></div>
+
+    <div id="ui">
+      <!-- HUD -->
+      <div id="hud" hidden>
+        <span class="hud-star">✦</span>
+        <span id="count">0</span><span class="sep">/</span><span id="total">20</span>
+      </div>
+      <button id="mute" class="icon-btn" hidden aria-label="Sonido">♪</button>
+      <div id="phrase" aria-live="polite"></div>
+      <div id="compass-hint" hidden>✦ sigue la flechita</div>
+
+      <!-- Portada -->
+      <div id="intro" class="overlay">
+        <div class="intro-box">
+          <p class="eyebrow" id="intro-date"></p>
+          <h1 class="neon title">FELIZ<br />CUMPLE</h1>
+          <h2 id="intro-name" class="neon-pink"></h2>
+          <p class="hint" id="intro-hint">Arrastra el dedo para volar<br />y recoge las <b>20</b> estrellas ✦</p>
+          <button id="start" class="btn">▶ &nbsp;TOCA PARA EMPEZAR</button>
+          <div id="intro-done" class="stack" hidden>
+            <button id="read-again" class="btn">💌 &nbsp;LEER LA CARTA</button>
+            <button id="fly-again" class="btn ghost">✦ &nbsp;VOLVER A VOLAR</button>
+          </div>
+          <p class="tiny">toca la pantalla para activar el sonido</p>
+        </div>
+      </div>
+
+      <!-- Final -->
+      <div id="finale">
+        <h1 id="finale-title" class="neon title"></h1>
+        <p id="finale-sub" class="neon-pink"></p>
+        <div id="polaroids"></div>
+        <button id="open-letter" class="btn big" hidden>💌 &nbsp;LEER LA CARTA</button>
+      </div>
+
+      <!-- Carta -->
+      <div id="letter" class="overlay" hidden>
+        <div class="paper">
+          <div class="paper-top"><span>✦ ✦ ✦</span></div>
+          <div id="letter-content" class="typing"></div>
+          <p id="letter-sign"></p>
+          <div class="heart" aria-hidden="true">
+            <svg viewBox="0 0 13 11" shape-rendering="crispEdges">
+              <g fill="#f472b6">
+                <rect x="1" y="0" width="3" height="1"/><rect x="9" y="0" width="3" height="1"/>
+                <rect x="0" y="1" width="5" height="1"/><rect x="8" y="1" width="5" height="1"/>
+                <rect x="0" y="2" width="13" height="1"/><rect x="0" y="3" width="13" height="1"/>
+                <rect x="0" y="4" width="13" height="1"/><rect x="1" y="5" width="11" height="1"/>
+                <rect x="2" y="6" width="9" height="1"/><rect x="3" y="7" width="7" height="1"/>
+                <rect x="4" y="8" width="5" height="1"/><rect x="5" y="9" width="3" height="1"/>
+                <rect x="6" y="10" width="1" height="1"/>
+              </g>
+              <g fill="#fbcfe8"><rect x="2" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="2"/></g>
+            </svg>
+          </div>
+          <div class="letter-actions">
+            <button id="letter-again" class="btn ghost small">↻ &nbsp;OTRA VEZ</button>
+            <button id="letter-fly" class="btn small">✦ &nbsp;VOLVER A VOLAR</button>
+          </div>
+        </div>
+        <p class="tap-hint" id="tap-hint">toca para ver todo</p>
+      </div>
+
+      <button id="free-letter" class="btn float" hidden aria-label="Leer la carta">💌</button>
+      <div id="fps" hidden></div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "constelacion-20",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Un juego de cumpleaños: recoge 20 estrellas y lee la carta 💌",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "@fontsource/press-start-2p": "^5.1.0",
+    "@fontsource/vt323": "^5.1.0",
+    "canvas-confetti": "^1.9.3",
+    "gsap": "^3.13.0",
+    "pixi-filters": "^6.1.0",
+    "pixi.js": "^8.6.0",
+    "tone": "^15.0.4"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^24.0.0",
+    "vite": "^7.0.0"
+  }
+}

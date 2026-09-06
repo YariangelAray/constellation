@@ -1,0 +1,6 @@
+Pon aquí las fotos para las polaroids del final, con estos nombres:
+
+  1.jpg  2.jpg  3.jpg  4.jpg  5.jpg ...
+
+(hasta 8; si no hay ninguna, esa parte se salta sola).
+Ideal: cuadradas o casi, y de máximo ~900 px de ancho para que carguen rápido.
