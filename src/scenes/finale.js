@@ -164,7 +164,7 @@ export function runFinale(game, space) {
 
   const tTitle = tStars + 1.9;
   tl.add(() => {
-    hud.finaleTitle(`${CONFIG.totalEstrellas} AÑOS`, `${CONFIG.nombre}, feliz cumpleaños ✦`);
+    hud.finaleTitle(`${CONFIG.totalEstrellas} AÑOS`, `Feliz día, mi bonita ✦`);
     audio.fanfare();
     confettiBurst();
     fireworks(space, 9);

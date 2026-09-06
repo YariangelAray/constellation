@@ -99,6 +99,7 @@ html, body {
 }
 #hud .hud-star { font-size: 13px; }
 #hud .sep { opacity: .6; margin: 0 2px; }
+#hud.free .sep, #hud.free #total { display: none; }
 #count { display: inline-block; transform-origin: center; }
 
 #phrase {

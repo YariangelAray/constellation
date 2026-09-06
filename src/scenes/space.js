@@ -15,6 +15,8 @@ import { formation } from './finale.js';
 const MAGNET = 34;   // radio en el que la estrella se deja atraer
 const GRAB = 7;      // radio de recogida
 const IDLE_HINT = 6; // segundos sin recoger nada → aparece la brújula
+const TAIL_GAP = 9;  // separación entre estrellas de la cola (modo libre)
+const TAIL_MAX = 80; // tope de segmentos dibujados (el contador sigue subiendo)
 
 function makeStar(i, x, y, color, rng) {
   const v = new Container();
@@ -42,7 +44,12 @@ export class SpaceScene {
     this.compass.anchor.set(0.5);
     this.compass.tint = 0xfde68a;
     this.compass.alpha = 0;
-    this.world.addChild(this.starLayer, this.particles.container, this.astronaut.view, this.compass);
+    // Modo libre: cola "gusanito" de estrellas comidas que siguen a la astronauta
+    this.tailLayer = new Container();
+    this.tail = [];
+    this.trail = [];   // recorrido reciente de la astronauta (el más nuevo primero)
+    this.eaten = 0;
+    this.world.addChild(this.starLayer, this.tailLayer, this.particles.container, this.astronaut.view, this.compass);
 
     // Capa en coordenadas de pantalla (final, fuegos, estrellas fugaces)
     this.fxLayer = new Container();
@@ -103,14 +110,19 @@ export class SpaceScene {
     gsap.killTweensOf([this.world, this.astronaut.view, ...this.stars.map((s) => s.view), ...this.stars.map((s) => s.view.scale)]);
     this.world.alpha = 1;
     this.starfield.container.alpha = 1;
-    this.world.addChildAt(this.astronaut.view, 2);
+    this.world.addChildAt(this.astronaut.view, 3);
     this.screenFx.clear();
     this.particles.clear();
     if (this.finaleLines) { this.finaleLines.destroy(); this.finaleLines = null; }
+    for (const seg of this.tail) seg.view.destroy({ children: true });
+    this.tail = [];
+    this.trail = [];
+    this.eaten = 0;
 
     const collected = new Set(this.game.save.collected);
     for (const s of this.stars) {
-      s.collected = collected.has(s.i);
+      // en modo libre todas se pueden comer (y reaparecen)
+      s.collected = free ? false : collected.has(s.i);
       this.starLayer.addChild(s.view);
       s.view.position.set(Math.round(s.x), Math.round(s.y));
       s.view.scale.set(1);
@@ -128,8 +140,9 @@ export class SpaceScene {
       this.starfield.setConstellation(this.constellationData.points, this.constellationData.segments, this.cam);
     }
 
-    hud.showHud(this.mode === 'play');
-    hud.setCount(collected.size);
+    hud.showHud(this.mode === 'play' || free);
+    hud.freeMode(free);
+    hud.setCount(free ? 0 : collected.size);
     hud.compassHint(false);
   }
 
@@ -165,6 +178,7 @@ export class SpaceScene {
         ax = input.keys.x / l; ay = input.keys.y / l;
       }
       a.update(dt, ax, ay, this.W, this.H);
+      if (this.mode === 'free') this.updateTail(dt);
 
       // ── estrellas ──
       let nearest = null, nearestD = Infinity;
@@ -229,7 +243,84 @@ export class SpaceScene {
     this.starfield.update(this.cam.x, this.cam.y, dt);
   }
 
+  // ── modo libre: gusanito ──
+  updateTail(dt) {
+    const a = this.astronaut;
+    const head = this.trail[0];
+    if (!head || dist(head.x, head.y, a.x, a.y) >= 2) this.trail.unshift({ x: a.x, y: a.y });
+    const maxPts = Math.ceil(((this.tail.length + 2) * TAIL_GAP) / 2) + 30;
+    if (this.trail.length > maxPts) this.trail.length = maxPts;
+
+    // cada segmento se coloca a (i+1)·GAP píxeles por detrás a lo largo del recorrido
+    let idx = 0, acc = 0;
+    const k = 1 - Math.exp(-14 * dt);
+    for (let i = 0; i < this.tail.length; i++) {
+      const want = (i + 1) * TAIL_GAP;
+      while (idx < this.trail.length - 1 && acc < want) {
+        acc += dist(this.trail[idx].x, this.trail[idx].y, this.trail[idx + 1].x, this.trail[idx + 1].y);
+        idx++;
+      }
+      const p = this.trail[Math.min(idx, this.trail.length - 1)];
+      const seg = this.tail[i];
+      seg.view.x += (p.x - seg.view.x) * k;
+      seg.view.y += (p.y - seg.view.y) * k;
+      seg.halo.scale.set(0.75 + Math.sin(this.t * 4 + seg.phase) * 0.15);
+    }
+  }
+
+  addTailSegment(color) {
+    if (this.tail.length >= TAIL_MAX) return;
+    const a = this.astronaut;
+    const v = new Container();
+    v.position.set(a.x, a.y);
+    const halo = new Sprite(TEX.halo);
+    halo.anchor.set(0.5); halo.tint = hex(color); halo.blendMode = 'add'; halo.alpha = 0.55; halo.scale.set(0.75);
+    const core = new Sprite(TEX.star);
+    core.anchor.set(0.5); core.tint = hex(color);
+    v.addChild(halo, core);
+    this.tailLayer.addChild(v);
+    this.tail.push({ view: v, halo, core, phase: Math.random() * Math.PI * 2 });
+  }
+
+  respawn(s) {
+    const a = this.astronaut;
+    let x = s.x, y = s.y;
+    for (let t = 0; t < 60; t++) {
+      x = 24 + Math.random() * (this.W - 48);
+      y = 24 + Math.random() * (this.H - 48);
+      if (dist(x, y, a.x, a.y) < 90) continue;
+      if (this.stars.some((o) => o !== s && o.view.visible && dist(o.x, o.y, x, y) < 50)) continue;
+      break;
+    }
+    const colors = CONFIG.paleta.estrellas;
+    s.color = colors[(Math.random() * colors.length) | 0];
+    s.halo.tint = s.core.tint = hex(s.color);
+    s.x = x; s.y = y;
+    s.view.position.set(Math.round(x), Math.round(y));
+    s.view.alpha = 0;
+    s.view.scale.set(0.2);
+    s.view.visible = true;
+    s.collected = false;
+    this.particles.sparkle(x, y, hex(s.color));
+    gsap.to(s.view, { alpha: 1, duration: 0.5 });
+    gsap.to(s.view.scale, { x: 1, y: 1, duration: 0.6, ease: 'back.out(2)' });
+  }
+
+  collectFree(s) {
+    s.collected = true;
+    this.particles.sparkle(s.view.x, s.view.y, hex(s.color));
+    gsap.to(s.view.scale, { x: 2.2, y: 2.2, duration: 0.3, ease: 'power2.out' });
+    gsap.to(s.view, { alpha: 0, duration: 0.3, onComplete: () => { s.view.visible = false; } });
+    this.addTailSegment(s.color);
+    this.eaten++;
+    hud.setCount(this.eaten, true);
+    audio.blip(this.eaten % CONFIG.totalEstrellas);
+    if (CONFIG.vibracion && !params.has('novib')) vibrate(12);
+    gsap.delayedCall(1.2 + Math.random() * 1.5, () => { if (this.mode === 'free') this.respawn(s); });
+  }
+
   collect(s) {
+    if (this.mode === 'free') return this.collectFree(s);
     s.collected = true;
     this.idle = 0;
     this.particles.sparkle(s.view.x, s.view.y, hex(s.color));

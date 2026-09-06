@@ -72,7 +72,7 @@ export const hud = {
     el.start.hidden = done;
     el['intro-done'].hidden = !done;
     el['intro-hint'].innerHTML = done
-      ? 'Ya recogiste las <b>20</b> estrellas ✦<br />¿qué quieres hacer?'
+      ? 'Ya recogiste las <b>' + CONFIG.totalEstrellas + '</b> estrellas ✦<br />¿qué quieres hacer?'
       : 'Arrastra el dedo para volar<br />y recoge las <b>' + CONFIG.totalEstrellas + '</b> estrellas ✦';
     gsap.fromTo('.intro-box > *', { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.09, ease: 'power2.out' });
   },
@@ -84,6 +84,8 @@ export const hud = {
 
   // ── juego ──
   showHud(v) { this.el.hud.hidden = !v; },
+  // modo libre: solo "✦ N" (sin el "/ 20")
+  freeMode(v) { this.el.hud.classList.toggle('free', v); },
   setCount(n, pop = false) {
     this.el.count.textContent = n;
     if (pop) gsap.fromTo(this.el.count, { scale: 1.8 }, { scale: 1, duration: 0.5, ease: 'back.out(3)' });

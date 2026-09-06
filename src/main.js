@@ -60,7 +60,10 @@ game.openLetter = () => {
   input.enabled = false;
   hud.hideFreeLetter();
   if (from === 'finale') hud.hideFinale();
-  letter.show();
+  // la máquina de escribir solo la primera vez que se abre la carta
+  letter.show({ instant: !!game.save.letterSeen });
+  game.save.letterSeen = true;
+  storage.save(game.save);
 };
 
 async function boot() {
@@ -94,6 +97,7 @@ async function boot() {
 
   if (params.has('fps')) {
     window.__audio = audio;
+    window.__game = game;
     setInterval(() => hud.fps(`${Math.round(app.ticker.FPS)} fps · ${audio.debugInfo()}`), 500);
   }
 

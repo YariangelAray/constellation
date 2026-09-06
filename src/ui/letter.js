@@ -61,12 +61,13 @@ export const letter = {
     });
   },
 
-  show() {
+  // instant: la carta ya se leyó antes → aparece completa, sin máquina de escribir
+  show({ instant = false } = {}) {
     const el = this.el;
     el.overlay.hidden = false;
     el.overlay.style.opacity = '';
     gsap.fromTo(el.paper, { opacity: 0, y: 30, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: 'power3.out' });
-    this.start();
+    this.start({ instant });
   },
 
   hide() {
@@ -76,9 +77,22 @@ export const letter = {
     gsap.to(el.overlay, { opacity: 0, duration: 0.45, onComplete: () => { el.overlay.hidden = true; } });
   },
 
-  start() {
+  start({ instant = false } = {}) {
     const el = this.el;
     clearTimeout(this.timer);
+    if (instant) {
+      el.content.innerHTML = renderMarkdown(CARTA);
+      el.content.classList.remove('typing');
+      el.sign.textContent = FIRMA || '';
+      el.sign.style.opacity = 1;
+      el.heart.style.opacity = 1;
+      el.actions.style.opacity = 1;
+      el.actions.style.pointerEvents = '';
+      el.hint.hidden = true;
+      el.paper.scrollTop = 0;
+      this.typing = false;
+      return;
+    }
     el.content.innerHTML = renderMarkdown(CARTA);
     wrapChars(el.content);
     el.sign.textContent = FIRMA || '';
