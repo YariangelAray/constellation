@@ -5,7 +5,7 @@
 
 export const CONFIG = {
   // Nombre (o apodo) que aparece en la portada y en el final.
-  nombre: 'Astronauta',
+  nombre: 'Azumi',
 
   // Fecha que aparece chiquita en la portada.
   fecha: '06 · 09',

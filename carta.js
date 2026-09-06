@@ -24,4 +24,4 @@ Feliz cumpleaños. ✦
 `;
 
 // Firma al final de la carta.
-export const FIRMA = '— con todo mi cariño';
+export const FIRMA = 'Con todo cariño — Yari ✦';
