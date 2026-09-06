@@ -134,8 +134,13 @@ async function boot() {
     setInterval(() => hud.fps(`${Math.round(app.ticker.FPS)} fps · ${audio.debugInfo()}`), 500);
   }
 
-  // Cualquier toque en la portada desbloquea el audio (la música arranca ahí mismo)
-  hud.el.intro.addEventListener('pointerdown', () => audio.unlock());
+  // El primer toque EN CUALQUIER SITIO desbloquea el audio, se entre por donde se entre
+  // (portada, carta, modo libre…). click y touchend cuentan como gesto en Android;
+  // pointerdown táctil no. unlock() es idempotente, así que reintenta hasta que uno valga.
+  const wake = () => audio.unlock();
+  document.addEventListener('click', wake, { capture: true });
+  document.addEventListener('touchend', wake, { capture: true, passive: true });
+  document.addEventListener('keydown', wake, { capture: true });
   // Botones de la portada
   hud.el.start.addEventListener('click', () => { audio.unlock(); startSpace(); });
   hud.el['fly-again'].addEventListener('click', () => { audio.unlock(); startFree(); });

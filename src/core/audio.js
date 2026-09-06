@@ -17,19 +17,22 @@ export function setMuted(m) {
   try { Tone.getDestination().mute = m; } catch { /* aún no hay contexto */ }
 }
 
-// Debe llamarse desde un gesto del usuario (el botón de la portada).
+// Debe llamarse desde un gesto del usuario que cuente como activación (click / pointerup /
+// touchend; en Android un pointerdown táctil NO cuenta). Es idempotente: si un intento se
+// queda colgado porque el gesto no valía, el siguiente gesto vuelve a llamar a Tone.start().
 export async function unlock() {
-  if (ready || building) return;
-  building = true;
+  if (ready) return;
   try {
     await Tone.start();
+    if (ready || building) return;
+    building = true;
     build();
     ready = true;
     Tone.getDestination().mute = muted;
   } catch (e) {
     console.warn('Audio no disponible:', e);
+    building = false;
   }
-  building = false;
 }
 
 // C  Am  F  G — dos vueltas con pequeña variación
@@ -167,9 +170,12 @@ export function boom() {
   } catch { /* nada */ }
 }
 
-// La música acelera un poco cuando sube el peligro (96 → 120 bpm)
+// La música acelera un poco cuando sube el peligro (96 → 120 bpm).
+// Se llama cada frame, así que solo actúa cuando el cambio es de ≥1 bpm.
+let lastTempo = 96;
 export function setTempo(bpm) {
-  if (!ready) return;
+  if (!ready || Math.abs(bpm - lastTempo) < 1) return;
+  lastTempo = bpm;
   try { transport.bpm.rampTo(bpm, 1.5); } catch { /* nada */ }
 }
 
