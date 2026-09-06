@@ -130,6 +130,7 @@ export const hud = {
     const box = this.el.polaroids;
     box.innerHTML = '';
     if (!urls.length) return;
+    box.classList.toggle('many', urls.length > 5); // más de 5 → polaroids más chicas para que quepan
     const figs = urls.map((u) => {
       const f = document.createElement('figure');
       f.className = 'polaroid';

@@ -63,16 +63,26 @@ function drawLines(g, points, segments, progress) {
   g.stroke({ width: 1, color: 0x7dd3fc, alpha: 0.75 });
 }
 
+const tryLoad = (u) => new Promise((res) => {
+  const im = new Image();
+  im.onload = () => res(u);
+  im.onerror = () => res(null);
+  im.src = u;
+});
+
+// 'auto': busca fotos/1…8 con extensión .jpg, .jpeg o .png (la primera que exista)
 function loadPhotos() {
-  const list = CONFIG.fotos === 'auto'
-    ? Array.from({ length: 8 }, (_, i) => `fotos/${i + 1}.jpg`)
-    : (CONFIG.fotos || []);
-  return Promise.all(list.map((u) => new Promise((res) => {
-    const im = new Image();
-    im.onload = () => res(u);
-    im.onerror = () => res(null);
-    im.src = u;
-  }))).then((a) => a.filter(Boolean).slice(0, 5));
+  if (CONFIG.fotos !== 'auto') {
+    return Promise.all((CONFIG.fotos || []).map(tryLoad)).then((a) => a.filter(Boolean).slice(0, 8));
+  }
+  const slots = Array.from({ length: 8 }, (_, i) => i + 1);
+  return Promise.all(slots.map(async (n) => {
+    for (const ext of ['jpg', 'jpeg', 'png']) {
+      const u = await tryLoad(`fotos/${n}.${ext}`);
+      if (u) return u;
+    }
+    return null;
+  })).then((a) => a.filter(Boolean));
 }
 
 function confettiBurst() {

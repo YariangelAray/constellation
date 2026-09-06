@@ -177,6 +177,8 @@ html, body {
   transform: rotate(var(--r)); opacity: 0;
 }
 .polaroid img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; image-rendering: auto; background: #cbd5e1; }
+#polaroids.many { top: 55%; gap: 8px 6px; }
+#polaroids.many .polaroid { width: 74px; padding: 4px 4px 14px; }
 #open-letter {
   position: absolute; left: 50%; bottom: calc(var(--sab) + 40px); transform: translateX(-50%);
   opacity: 0;
