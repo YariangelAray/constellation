@@ -59,6 +59,18 @@ const DOT_ROWS = ['.W.', 'WWW', '.W.'];
 // Flechita de la brújula (7 × 7), apunta a la derecha
 const ARROW_ROWS = ['..W....', '..WW...', '..WWW..', 'WWWWWWW', '..WWW..', '..WW...', '..W....'];
 
+// ── Cometa (7 × 7): roca con núcleo caliente ──
+const COMET_PAL = { R: '#7c2d12', O: '#ea580c', Y: '#fbbf24', W: '#fff7ed' };
+const COMET_ROWS = [
+  '..RRR..',
+  '.ROOOR.',
+  'ROYYYOR',
+  'ROYWWYR',
+  'ROYYYOR',
+  '.ROOOR.',
+  '..RRR..',
+];
+
 // Halo suave (se tiñe con el color de cada estrella)
 function haloTexture(size = 26) {
   const c = document.createElement('canvas');
@@ -119,6 +131,7 @@ export function buildTextures() {
   TEX.star = pixelTexture(STAR_ROWS, { W: '#ffffff' });
   TEX.dot = pixelTexture(DOT_ROWS, { W: '#ffffff' });
   TEX.arrow = pixelTexture(ARROW_ROWS, { W: '#ffffff' });
+  TEX.comet = pixelTexture(COMET_ROWS, COMET_PAL);
   TEX.halo = haloTexture(26);
   TEX.haloBig = haloTexture(64);
   TEX.nebula = [nebulaTexture(11), nebulaTexture(23), nebulaTexture(47)];

@@ -11,12 +11,21 @@ import { mulberry32, clamp, dist, hex, vibrate, storage, params } from '../core/
 import * as audio from '../core/audio.js';
 import { hud } from '../ui/hud.js';
 import { formation } from './finale.js';
+import { CometField } from '../entities/comet.js';
 
 const MAGNET = 34;   // radio en el que la estrella se deja atraer
 const GRAB = 7;      // radio de recogida
 const IDLE_HINT = 6; // segundos sin recoger nada → aparece la brújula
 const TAIL_GAP = 9;  // separación entre estrellas de la cola (modo libre)
 const TAIL_MAX = 80; // tope de segmentos dibujados (el contador sigue subiendo)
+
+// ── modo arcade ──
+const RAMP = 60;        // segundos (tras la gracia) hasta la dificultad máxima
+const RAMP_STARS = 30;  // ... o estrellas comidas, lo que llegue antes
+const GOLD_MIN = 12;    // cada cuánto puede salir una estrella dorada
+const GOLD_MAX = 18;
+const GOLD_LIFE = 6;    // cuánto dura dorada antes de volver a la normalidad
+const GOLD_COLOR = '#fde68a';
 
 function makeStar(i, x, y, color, rng) {
   const v = new Container();
@@ -49,12 +58,13 @@ export class SpaceScene {
     this.tail = [];
     this.trail = [];   // recorrido reciente de la astronauta (el más nuevo primero)
     this.eaten = 0;
-    this.world.addChild(this.starLayer, this.tailLayer, this.particles.container, this.astronaut.view, this.compass);
+    this.cometField = new CometField(this.particles);
+    this.world.addChild(this.starLayer, this.tailLayer, this.cometField.container, this.particles.container, this.astronaut.view, this.compass);
 
     // Capa en coordenadas de pantalla (final, fuegos, estrellas fugaces)
     this.fxLayer = new Container();
     this.screenFx = new Particles(700);
-    this.fxLayer.addChild(this.screenFx.container);
+    this.fxLayer.addChild(this.screenFx.container, this.cometField.warnLayer);
 
     this.root.addChild(this.starfield.container, this.world, this.fxLayer);
 
@@ -107,7 +117,8 @@ export class SpaceScene {
     this.camOffsetY = intro ? view.h * 0.28 : 0;
 
     // Deshacer lo que haya hecho el final
-    gsap.killTweensOf([this.world, this.astronaut.view, ...this.stars.map((s) => s.view), ...this.stars.map((s) => s.view.scale)]);
+    gsap.killTweensOf([this.root, this.world, this.astronaut.view, ...this.stars.map((s) => s.view), ...this.stars.map((s) => s.view.scale)]);
+    this.root.position.set(0, 0); // por si quedó a medias la sacudida de un choque
     this.world.alpha = 1;
     this.starfield.container.alpha = 1;
     this.world.addChildAt(this.astronaut.view, 3);
@@ -118,6 +129,18 @@ export class SpaceScene {
     this.tail = [];
     this.trail = [];
     this.eaten = 0;
+    this.cometField.clear();
+    this.paused = false;
+    this.dead = false;
+
+    // reloj y estado de la partida arcade
+    const arcade = CONFIG.arcade || {};
+    this.arcade = free && arcade.activo !== false && !params.has('norisk');
+    this.freeTime = 0;
+    this.grace = params.has('grace') ? Number(params.get('grace')) : (arcade.graciaSegundos ?? 10);
+    this.warned = false;
+    this.gold = null;
+    this.goldTimer = params.has('gold') ? 0.5 : GOLD_MIN + Math.random() * (GOLD_MAX - GOLD_MIN);
 
     const collected = new Set(this.game.save.collected);
     for (const s of this.stars) {
@@ -143,7 +166,9 @@ export class SpaceScene {
     hud.showHud(this.mode === 'play' || free);
     hud.freeMode(free);
     hud.setCount(free ? 0 : collected.size);
+    hud.showRecord(free ? (this.game.save.record || 0) : 0);
     hud.compassHint(false);
+    if (free) audio.setTempo(96);
   }
 
   camTargetX() {
@@ -160,6 +185,14 @@ export class SpaceScene {
     this.t += dt;
     const t = this.t;
     if (this.mode === 'idle') { this.starfield.update(this.cam.x, this.cam.y, dt); return; }
+
+    // con la carta abierta el mundo sigue vivo pero no se juega (ni se muere)
+    if (this.paused) {
+      this.particles.update(dt);
+      this.screenFx.update(dt);
+      this.starfield.update(this.cam.x, this.cam.y, dt);
+      return;
+    }
 
     const playing = this.mode === 'play' || this.mode === 'free' || this.mode === 'intro';
     const a = this.astronaut;
@@ -178,7 +211,7 @@ export class SpaceScene {
         ax = input.keys.x / l; ay = input.keys.y / l;
       }
       a.update(dt, ax, ay, this.W, this.H);
-      if (this.mode === 'free') this.updateTail(dt);
+      if (this.mode === 'free') { this.updateTail(dt); this.updateArcade(dt); }
 
       // ── estrellas ──
       let nearest = null, nearestD = Infinity;
@@ -268,6 +301,111 @@ export class SpaceScene {
     }
   }
 
+  // ── modo arcade: cometas, dificultad creciente y estrella dorada ──
+  updateArcade(dt) {
+    this.freeTime += dt;
+    if (!this.arcade || this.dead) return;
+    const a = this.astronaut;
+
+    // dorada: una estrella normal se vuelve de oro un rato
+    if (CONFIG.arcade?.estrellaDorada !== false) {
+      if (this.gold) {
+        this.gold.goldLeft -= dt;
+        this.gold.halo.scale.set(1.6 + Math.sin(this.t * 8) * 0.4);
+        this.gold.halo.alpha = 0.7 + Math.sin(this.t * 8) * 0.25;
+        if (this.gold.goldLeft <= 0 || !this.gold.view.visible) this.unmakeGold();
+      } else {
+        this.goldTimer -= dt;
+        if (this.goldTimer <= 0) this.makeGold();
+      }
+    }
+
+    // rampa: 0 durante la gracia, 1 en lo más difícil
+    const since = this.freeTime - this.grace;
+    if (since <= 0) return;
+    if (!this.warned) {
+      this.warned = true;
+      hud.phrase('cuidado ✦ cometas');
+    }
+    const danger = params.has('danger') ? 1 : clamp(Math.max(since / RAMP, this.eaten / RAMP_STARS), 0, 1);
+    audio.setTempo(96 + danger * 24);
+
+    this.cometField.update(dt, {
+      danger,
+      maxComets: CONFIG.arcade?.cometasMax ?? 5,
+      target: { x: a.x, y: a.y },
+      cam: this.cam,
+      W: this.W, H: this.H,
+    });
+
+    // choque (los primeros 1,5 s tras entrar son de cortesía)
+    if (this.freeTime > this.grace + 1.5 && this.cometField.hits(a.x, a.y)) this.die();
+  }
+
+  makeGold() {
+    const candidates = this.stars.filter((s) => s.view.visible && !s.collected);
+    if (!candidates.length) { this.goldTimer = 3; return; }
+    const s = candidates[(Math.random() * candidates.length) | 0];
+    s.prevColor = s.color;
+    s.color = GOLD_COLOR;
+    s.halo.tint = s.core.tint = hex(GOLD_COLOR);
+    s.isGold = true;
+    s.goldLeft = GOLD_LIFE;
+    s.view.scale.set(1.35);
+    this.gold = s;
+    this.particles.sparkle(s.view.x, s.view.y, hex(GOLD_COLOR));
+  }
+
+  unmakeGold() {
+    const s = this.gold;
+    this.gold = null;
+    this.goldTimer = GOLD_MIN + Math.random() * (GOLD_MAX - GOLD_MIN);
+    if (!s || !s.isGold) return;
+    s.isGold = false;
+    s.color = s.prevColor || s.color;
+    s.halo.tint = s.core.tint = hex(s.color);
+    s.halo.scale.set(1);
+    s.view.scale.set(1);
+  }
+
+  // choque con un cometa: explosión, cola desparramada y fin de partida
+  die() {
+    if (this.dead) return;
+    this.dead = true;
+    input.enabled = false;
+    const a = this.astronaut;
+
+    audio.boom();
+    if (CONFIG.vibracion && !params.has('novib')) vibrate([40, 60, 90]);
+
+    this.particles.emit({
+      x: a.x, y: a.y, count: 60, colors: [0xfb923c, 0xfde68a, 0xffffff, 0xf87171],
+      speed: 90, life: 1.1, size: 2.4, drag: 1.6, add: true, shrink: true,
+    });
+    a.view.visible = false;
+
+    // la cola sale volando en pedazos
+    for (const seg of this.tail) {
+      const ang = Math.random() * Math.PI * 2;
+      const d = 20 + Math.random() * 40;
+      gsap.to(seg.view, {
+        x: seg.view.x + Math.cos(ang) * d, y: seg.view.y + Math.sin(ang) * d,
+        alpha: 0, duration: 0.7 + Math.random() * 0.4, ease: 'power2.out',
+      });
+      gsap.to(seg.view.scale, { x: 0.2, y: 0.2, duration: 0.8, ease: 'power2.in' });
+    }
+
+    // sacudida de pantalla
+    const r = this.root;
+    gsap.fromTo(r, { x: 0, y: 0 }, {
+      x: 0, y: 0, duration: 0.5, ease: 'none',
+      onUpdate: () => { r.x = (Math.random() - 0.5) * 7; r.y = (Math.random() - 0.5) * 7; },
+      onComplete: () => { r.x = 0; r.y = 0; },
+    });
+
+    this.game.gameOver(this.eaten);
+  }
+
   addTailSegment(color) {
     if (this.tail.length >= TAIL_MAX) return;
     const a = this.astronaut;
@@ -283,6 +421,7 @@ export class SpaceScene {
   }
 
   respawn(s) {
+    if (s.isGold) this.unmakeGold();
     const a = this.astronaut;
     let x = s.x, y = s.y;
     for (let t = 0; t < 60; t++) {
@@ -307,16 +446,31 @@ export class SpaceScene {
   }
 
   collectFree(s) {
+    if (this.dead) return;
+    const isGold = !!s.isGold;
+    const value = isGold ? (CONFIG.arcade?.valorDorada ?? 5) : 1;
     s.collected = true;
+
     this.particles.sparkle(s.view.x, s.view.y, hex(s.color));
+    if (isGold) {
+      this.particles.emit({
+        x: s.view.x, y: s.view.y, count: 40, colors: [0xfde68a, 0xffffff, 0xfbbf24],
+        speed: 85, life: 0.9, size: 2, drag: 2, add: true, shrink: true,
+      });
+      this.unmakeGold();
+      audio.shine();
+    } else {
+      audio.blip(this.eaten % CONFIG.totalEstrellas);
+    }
     gsap.to(s.view.scale, { x: 2.2, y: 2.2, duration: 0.3, ease: 'power2.out' });
     gsap.to(s.view, { alpha: 0, duration: 0.3, onComplete: () => { s.view.visible = false; } });
-    this.addTailSegment(s.color);
-    this.eaten++;
+
+    for (let i = 0; i < value; i++) this.addTailSegment(isGold ? GOLD_COLOR : s.color);
+    this.eaten += value;
     hud.setCount(this.eaten, true);
-    audio.blip(this.eaten % CONFIG.totalEstrellas);
-    if (CONFIG.vibracion && !params.has('novib')) vibrate(12);
-    gsap.delayedCall(1.2 + Math.random() * 1.5, () => { if (this.mode === 'free') this.respawn(s); });
+    if (isGold) hud.flashCount();
+    if (CONFIG.vibracion && !params.has('novib')) vibrate(isGold ? [15, 30, 25] : 12);
+    gsap.delayedCall(1.2 + Math.random() * 1.5, () => { if (this.mode === 'free' && !this.dead) this.respawn(s); });
   }
 
   collect(s) {

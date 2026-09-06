@@ -21,6 +21,7 @@
         <span class="hud-star">✦</span>
         <span id="count">0</span><span class="sep">/</span><span id="total">20</span>
       </div>
+      <div id="record" hidden></div>
       <button id="mute" class="icon-btn" hidden aria-label="Sonido"></button>
       <div id="phrase" aria-live="polite"></div>
       <div id="compass-hint" hidden>✦ sigue la flechita</div>
@@ -77,6 +78,19 @@
           </div>
         </div>
         <p class="tap-hint" id="tap-hint">toca para ver todo</p>
+      </div>
+
+      <!-- Fin de partida (modo arcade) -->
+      <div id="gameover" class="overlay" hidden>
+        <div class="over-box">
+          <h2 id="over-title" class="neon-purple">¡BOOM!</h2>
+          <p id="over-score">✦ 0</p>
+          <p id="over-record"></p>
+          <div class="over-actions">
+            <button id="over-again" class="btn"><span class="bi">↻</span><span>OTRA VEZ</span></button>
+            <button id="over-back" class="btn ghost small"><span class="bi">✦</span><span>VOLVER</span></button>
+          </div>
+        </div>
       </div>
 
       <button id="free-letter" class="btn float" hidden aria-label="Leer la carta">💌</button>

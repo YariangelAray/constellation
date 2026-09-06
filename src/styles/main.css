@@ -100,6 +100,27 @@ html, body {
 #hud .hud-star { font-size: 13px; }
 #hud .sep { opacity: .6; margin: 0 2px; }
 #hud.free .sep, #hud.free #total { display: none; }
+
+#record {
+  position: fixed; top: calc(var(--sat) + 40px); left: 50%; transform: translateX(-50%);
+  font-family: var(--mono); font-size: 19px; color: var(--violet); opacity: .8;
+  white-space: nowrap;
+}
+
+/* ───────── fin de partida ───────── */
+#gameover { background: rgba(5,3,15,.72); }
+.over-box { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+#over-title { margin: 0; font-size: clamp(24px, 8vw, 38px); }
+#over-score {
+  margin: 0; font-family: var(--mono); font-size: 44px; line-height: 1;
+  color: var(--gold); text-shadow: 0 0 10px rgba(253,230,138,.8), 0 0 26px rgba(253,230,138,.45);
+}
+#over-record { margin: 0; font-family: var(--mono); font-size: 24px; color: var(--ink); opacity: .85; }
+#over-record.new {
+  color: var(--gold); opacity: 1;
+  text-shadow: 0 0 10px rgba(253,230,138,.9), 0 0 24px rgba(253,230,138,.5);
+}
+.over-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 6px; }
 #count { display: inline-block; transform-origin: center; }
 
 #phrase {

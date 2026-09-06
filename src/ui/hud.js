@@ -48,7 +48,8 @@ export const hud = {
     const el = this.el;
     ['hud', 'count', 'total', 'mute', 'phrase', 'compass-hint', 'intro', 'intro-date', 'intro-name', 'intro-hint',
       'start', 'intro-done', 'read-again', 'fly-again', 'finale', 'finale-title', 'finale-sub', 'polaroids',
-      'open-letter', 'free-letter', 'fps', 'restart'].forEach((id) => { el[id] = $('#' + id); });
+      'open-letter', 'free-letter', 'fps', 'restart', 'record',
+      'gameover', 'over-title', 'over-score', 'over-record', 'over-again', 'over-back'].forEach((id) => { el[id] = $('#' + id); });
 
     el.mute.innerHTML = pixelSvg(SPEAKER, 'ico-on') + pixelSvg(SPEAKER_OFF, 'ico-off');
 
@@ -86,6 +87,15 @@ export const hud = {
   showHud(v) { this.el.hud.hidden = !v; },
   // modo libre: solo "✦ N" (sin el "/ 20")
   freeMode(v) { this.el.hud.classList.toggle('free', v); },
+  showRecord(n) {
+    const el = this.el.record;
+    el.hidden = !n;
+    if (n) el.textContent = `récord ${n}`;
+  },
+  // destello dorado del contador (estrella dorada / récord batido)
+  flashCount() {
+    gsap.fromTo(this.el.count, { scale: 2.4 }, { scale: 1, duration: 0.7, ease: 'back.out(2.5)' });
+  },
   setCount(n, pop = false) {
     this.el.count.textContent = n;
     if (pop) gsap.fromTo(this.el.count, { scale: 1.8 }, { scale: 1, duration: 0.5, ease: 'back.out(3)' });
@@ -160,6 +170,22 @@ export const hud = {
     gsap.fromTo(b, { scale: 0 }, { scale: 1, duration: 0.6, ease: 'back.out(2)' });
   },
   hideFreeLetter() { this.el['free-letter'].hidden = true; },
+
+  // ── fin de partida (modo arcade) ──
+  showGameOver({ score, record, isNew }) {
+    const el = this.el;
+    el['over-score'].textContent = `✦ ${score}`;
+    el['over-record'].textContent = isNew ? '¡NUEVO RÉCORD!' : `tu récord: ${record}`;
+    el['over-record'].classList.toggle('new', !!isNew);
+    el['over-title'].textContent = isNew ? '¡BOOM!' : 'SE ACABÓ';
+    el.gameover.hidden = false;
+    el.gameover.style.opacity = '';
+    gsap.fromTo('.over-box > *', { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'back.out(1.6)' });
+  },
+  hideGameOver() {
+    const el = this.el;
+    gsap.to(el.gameover, { opacity: 0, duration: 0.35, onComplete: () => { el.gameover.hidden = true; el.gameover.style.opacity = ''; } });
+  },
 
   fps(text) { const f = this.el.fps; f.hidden = false; f.textContent = text; },
 };

@@ -19,8 +19,8 @@ const game = {
   space: null,
 };
 
-function freshSave() {
-  return { collected: [], seed: (Math.random() * 1e9) | 0, done: false };
+function freshSave(record = 0) {
+  return { collected: [], seed: (Math.random() * 1e9) | 0, done: false, record };
 }
 
 function startSpace() {
@@ -34,17 +34,38 @@ function startSpace() {
 function startFree() {
   hud.hideIntro();
   hud.hideFinale();
+  hud.hideGameOver();
   game.state = 'free';
   game.space.enter({ free: true });
   input.enabled = true;
   if (CONFIG.modoLibre) hud.showFreeLetter(() => game.openLetter());
 }
 
-// Empezar de cero: borra el progreso y recarga limpio (sin parámetros de prueba)
+// Empezar de cero: borra el progreso pero NO el récord (esa marca es suya) y recarga limpio
 function restart() {
+  const record = game.save?.record || 0;
   storage.clear();
+  if (record) storage.save(freshSave(record));
   location.replace(location.pathname);
 }
+
+// Fin de partida del modo arcade
+game.gameOver = (score) => {
+  game.state = 'gameover';
+  input.enabled = false;
+  hud.hideFreeLetter();
+  const record = game.save.record || 0;
+  const isNew = score > record;
+  if (isNew) {
+    game.save.record = score;
+    storage.save(game.save);
+  }
+  setTimeout(() => {
+    hud.showHud(false);
+    hud.showRecord(0);
+    hud.showGameOver({ score, record: Math.max(record, score), isNew });
+  }, 1200);
+};
 
 game.complete = () => {
   game.state = 'finale';
@@ -58,7 +79,9 @@ game.openLetter = () => {
   const from = game.state;
   game.state = 'letter';
   input.enabled = false;
+  game.space.paused = true; // que no la maten mientras lee
   hud.hideFreeLetter();
+  hud.hideGameOver();
   if (from === 'finale') hud.hideFinale();
   // la máquina de escribir solo la primera vez que se abre la carta
   letter.show({ instant: !!game.save.letterSeen });
@@ -82,6 +105,15 @@ async function boot() {
     onRestart: restart,
   });
   hud.el.restart.addEventListener('click', restart);
+  hud.el['over-again'].addEventListener('click', () => { hud.hideGameOver(); startFree(); });
+  hud.el['over-back'].addEventListener('click', () => {
+    hud.hideGameOver();
+    hud.showHud(false);
+    hud.showRecord(0);
+    game.state = 'intro';
+    game.space.enter({ intro: true });
+    hud.showIntro({ done: !!game.save.done });
+  });
 
   await initApp(document.getElementById('game-root'));
   buildTextures();
@@ -120,6 +152,9 @@ async function boot() {
     hud.el.intro.hidden = true;
     startFree();
     game.openLetter();
+  } else if (scene === 'libre') {
+    hud.el.intro.hidden = true;
+    startFree();
   } else {
     game.space.enter({ intro: true });
     hud.showIntro({ done: !!game.save.done });

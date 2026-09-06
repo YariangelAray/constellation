@@ -148,6 +148,31 @@ export function tick(n) {
   } catch { /* nada */ }
 }
 
+// Estrella dorada: arpegio corto y agudo
+export function shine() {
+  if (!ready) return;
+  try {
+    const now = Tone.now();
+    ['C6', 'E6', 'G6', 'C7'].forEach((n, i) => blipSynth.triggerAttackRelease(n, '32n', now + i * 0.05));
+  } catch { /* nada */ }
+}
+
+// Choque con un cometa
+export function boom() {
+  if (!ready) return;
+  try {
+    const now = Tone.now();
+    bass.triggerAttackRelease('C2', '4n', now);
+    blipSynth.triggerAttackRelease(['C3', 'F#3'], '8n', now, 0.8);
+  } catch { /* nada */ }
+}
+
+// La música acelera un poco cuando sube el peligro (96 → 120 bpm)
+export function setTempo(bpm) {
+  if (!ready) return;
+  try { transport.bpm.rampTo(bpm, 1.5); } catch { /* nada */ }
+}
+
 // Fanfarria del "20 AÑOS"
 export function fanfare() {
   if (!ready) return;
