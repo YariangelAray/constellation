@@ -16,26 +16,26 @@ export const CONFIG = {
   // Una frase por estrella, en el orden en que las va recogiendo (1ª, 2ª, 3ª…).
   // Cortas, que quepan en una línea de celular. Deja '' si no quieres frase en alguna.
   frases: [
-    'año 1 · llegaste al mundo ✦',
-    'año 2 · primeros pasos',
-    'año 3 · ya tenías esa risa',
-    'año 4 · curiosa desde siempre',
-    'año 5 · mirando al cielo',
-    'año 6 · soñando en grande',
-    'año 7 · brillabas sin saberlo',
-    'año 8 · coleccionando estrellas',
-    'año 9 · creciendo con luz propia',
-    'año 10 · dos dígitos ya',
-    'año 11 · hasta el infinito',
-    'año 12 · y más allá',
-    'año 13 · valiente',
-    'año 14 · con los pies en la Tierra',
-    'año 15 · y la cabeza en la Luna',
-    'año 16 · ahí estábamos',
-    'año 17 · nuestras aventuras',
-    'año 18 · despegue oficial 🚀',
-    'año 19 · órbita estable',
-    'año 20 · ✦ hoy ✦',
+    'una galaxia para mi estrella',
+    'para la de los labios de mamadora luxury',
+    'la leche de mi café',
+    'a la que le brillan los ojitos bn bonitos',
+    'el kook de mi yoon',
+    'para mi "la edad es un número"',
+    'la que llora por una mosca',
+    'la que entiende la vibra',
+    'mi farmeadora de aura',
+    'la bebita de mi fiu fiu',
+    'mi lucerito de media noche',
+    'la que me saca el lado lesbico',
+    'la que quisiera ser hombre para ser gay',
+    'mi bombon de coco con extra coco',
+    'la que en otra vida es mi esposa',
+    'te amo',
+    'nunca dejes de ser tu',
+    'cree más en tí',
+    'y en todo lo que puedes lograr',
+    '20 años ✦ sin un 1 en la edad ✦',
   ],
 
   // Fotos para las polaroids del final.
@@ -49,6 +49,15 @@ export const CONFIG = {
     fondo: '#05030f',
     estrellas: ['#fde68a', '#d8b4fe', '#7dd3fc', '#c4b5fd', '#86efac', '#fdba74', '#ffffff'],
     nebulosas: ['#6d28d9', '#0284c7', '#9333ea'],
+  },
+
+  // ── Modo libre con reto (el "gusanito", después de la carta) ──
+  arcade: {
+    activo: true,          // false = modo libre relajado de siempre, sin cometas
+    graciaSegundos: 10,    // segundos tranquilos al empezar, antes del primer cometa
+    cometasMax: 5,         // cuántos cometas a la vez en lo más difícil
+    estrellaDorada: true,  // aparece de vez en cuando una estrella dorada
+    valorDorada: 5,        // cuánto suma (y cuántos segmentos de cola da)
   },
 
   // Ajustes finos (normalmente no hace falta tocarlos)

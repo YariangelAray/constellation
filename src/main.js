@@ -71,6 +71,7 @@ game.complete = () => {
   game.state = 'finale';
   input.enabled = false;
   game.save.done = true;
+  game.save.letterSeen = false; // la primera lectura tras el final siempre se escribe
   storage.save(game.save);
   runFinale(game, game.space);
 };
